@@ -147,7 +147,13 @@ final class MySQL implements MySQLInterface
 
     private int $queryTimeout = 10;
 
-    public function __construct(string $host, string $username, string $password, string $database, int $port = 3306)
+    public function __construct(
+        string $host,
+        string $username,
+        string $password,
+        string $database,
+        int    $port = 3306
+    )
     {
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
