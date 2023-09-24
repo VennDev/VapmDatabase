@@ -46,6 +46,13 @@ interface SQLiteInterface
     public function getDatabase(): string;
 
     /**
+     * @param string $database
+     *
+     * Set database of SQLite connection
+     */
+    public function setDatabase(string $database): void;
+
+    /**
      * @return int
      *
      * Get port of SQLite connection
@@ -129,6 +136,11 @@ final class SQLite implements SQLiteInterface
     public function getDatabase(): string
     {
         return $this->database;
+    }
+
+    public function setDatabase(string $database): void
+    {
+        $this->database = $database;
     }
 
     public function getPort(): int
