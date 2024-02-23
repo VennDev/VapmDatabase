@@ -214,8 +214,18 @@ final class MySQL implements MySQLInterface
         if ($this->isBusy) throw new RuntimeException('This MySQL connection is busy!');
         $this->isBusy = true;
 
-        return new Promise(function ($resolve, $reject) use ($query, $namedArgs): void {
-            if (count($namedArgs) > 0) $query = Utils::buildQueryByNamedArgs($query, $namedArgs);
+        // Example: SELECT * FROM `user` WHERE `id` = :id
+        $buildQueryByNamedArgs = function(string $query, array $namedArgs): string {
+            $keys = array_keys($namedArgs);
+            $values = array_values($namedArgs);
+            $keys = array_map(function ($key) {
+                return ':' . $key;
+            }, $keys);
+            return str_replace($keys, $values, $query);
+        };
+
+        return new Promise(function ($resolve, $reject) use ($query, $namedArgs, $buildQueryByNamedArgs): void {
+            if (count($namedArgs) > 0) $query = $buildQueryByNamedArgs($query, $namedArgs);
 
             $this->mysqli->query($query, MYSQLI_STORE_RESULT | MYSQLI_ASYNC);
 
@@ -234,10 +244,10 @@ final class MySQL implements MySQLInterface
             $this->isBusy = false;
 
             if ($numQueries === 0) {
-                $reject(new ResultQuery(ResultQuery::FAILED, Error::QUERY_TIMEOUT, $errors, $rejects, null));
+                $reject(new ResultQuery(ResultQuery::FAILED, "Query error!", $errors, $rejects, null));
             } else {
                 $result = $this->mysqli->reap_async_query();
-                $result === false ? $reject(new ResultQuery(ResultQuery::FAILED, $this->mysqli->error, $errors, $rejects, null)) : $resolve(new ResultQuery(ResultQuery::SUCCESS, '', $errors, $rejects, $result));
+                $result === false ? $reject(new ResultQuery(ResultQuery::FAILED, $this->mysqli->error, $errors, $rejects, null)) : $resolve(new ResultQuery(ResultQuery::SUCCESS, '', $errors, $rejects, iterator_to_array($result->getIterator())));
             }
         });
     }
