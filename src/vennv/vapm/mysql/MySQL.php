@@ -21,9 +21,9 @@
 
 declare(strict_types=1);
 
-namespace vennv\vapm\mysql;
+namespace venndev\restapi\provider\mysql;
 
-use vennv\vapm\database\ResultQuery;
+use venndev\restapi\provider\database\ResultQuery;
 use vennv\vapm\simultaneous\Error;
 use vennv\vapm\simultaneous\FiberManager;
 use vennv\vapm\simultaneous\Promise;
@@ -215,7 +215,7 @@ final class MySQL implements MySQLInterface
         $this->isBusy = true;
 
         // Example: SELECT * FROM `user` WHERE `id` = :id
-        $buildQueryByNamedArgs = function(string $query, array $namedArgs): string {
+        $buildQueryByNamedArgs = function(string $query, array $namedArgs) : string {
             $keys = array_keys($namedArgs);
             $values = array_values($namedArgs);
             $keys = array_map(function ($key) {
@@ -247,7 +247,7 @@ final class MySQL implements MySQLInterface
                 $reject(new ResultQuery(ResultQuery::FAILED, "Query error!", $errors, $rejects, null));
             } else {
                 $result = $this->mysqli->reap_async_query();
-                $result === false ? $reject(new ResultQuery(ResultQuery::FAILED, $this->mysqli->error, $errors, $rejects, null)) : $resolve(new ResultQuery(ResultQuery::SUCCESS, '', $errors, $rejects, iterator_to_array($result->getIterator())));
+                $result === false ? $reject(new ResultQuery(ResultQuery::FAILED, $this->mysqli->error, $errors, $rejects, null)) : $resolve(new ResultQuery(ResultQuery::SUCCESS, '', $errors, $rejects, is_bool($result) ? $result : iterator_to_array($result->getIterator())));
             }
         });
     }
